@@ -1,0 +1,8 @@
+#!/home/matsco/Documents/Projets-info/Hackaton/Lauzhack2025/data_lauzhack_v2/Detection_for_bank_employee/venv/bin/python
+# -*- coding: utf-8 -*-
+import re
+import sys
+from jupyter_client.kernelspecapp import KernelSpecApp
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(KernelSpecApp.launch_instance())
