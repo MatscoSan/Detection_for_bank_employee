@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Graphic analyse risk</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #000000;
+            padding: 20px;
+            color: #d4d4d4; 
+        }
+
+        .container {
+            width: 80vw;
+            max-width: 800px;
+            background: rgb(20, 20, 20); 
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1); 
+        }
+
+        .chart-box {
+            position: relative;
+            height: 60vh; 
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        /* Légende */
+        .legend-container { margin-top: 20px; display: flex; flex-direction: column; align-items: center; }
+        .legend-title { font-size: 14px; font-weight: bold; color: #d4d4d4; margin-bottom: 5px; }
+        .gradient-bar-wrapper { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 400px; }
+        .gradient-bar {
+            flex-grow: 1; height: 15px; border-radius: 8px;
+            background: linear-gradient(to right, rgb(255, 240, 245), rgb(153, 0, 0));
+            border: 1px solid #333;
+        }
+        .legend-label { font-size: 12px; color: #c9c8c8; min-width: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2 style="text-align: center;">Transaction analyse</h2>
+        
+        <div class="chart-box">
+            <canvas id="myBubbleChart"></canvas>
+        </div>
+
+        <div class="legend-container">
+            <span class="legend-title">Risk intensity</span>
+            <div class="gradient-bar-wrapper">
+                <span class="legend-label">0</span>
+                <div class="gradient-bar"></div>
+                <span class="legend-label">100</span>
+            </div>
+            <p style="font-size: 11px; color: #666; margin-top: 10px;">The lines represent the transaction between 2 customers</p>
+        </div>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+
+        const COLOR_START = { r:255, g:240, b:245}; 
+        const COLOR_END   = { r:153, g:0, b:0 };   
+
+        function getColorForScore(score) {
+            const ratio = score / 100;
+            const r = Math.round(COLOR_START.r - ratio * (COLOR_START.r - COLOR_END.r));
+            const g = Math.round(COLOR_START.g - ratio * (COLOR_START.g - COLOR_END.g));
+            const b = Math.round(COLOR_START.b - ratio * (COLOR_START.b - COLOR_END.b));
+            return `rgba(${r}, ${g}, ${b}, 0.9)`;
+        }
+
+        const rawData = [];
+        const pointCount = 30; 
+
+        for(let i=0; i<pointCount; i++) {
+            const score = Math.floor(Math.random() * 101); 
+            rawData.push({
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+                r: 10 + (score / 3.5), 
+                originalScore: score 
+            });
+        }
+
+        const interactions = [];
+        for(let i=0; i<15; i++) {
+            const indexA = Math.floor(Math.random() * pointCount);
+            const indexB = Math.floor(Math.random() * pointCount);
+            if(indexA !== indexB) {
+                interactions.push({ from: indexA, to: indexB });
+            }
+        }
+
+        const bgColors = rawData.map(d => getColorForScore(d.originalScore));
+
+        const drawNetworkLines = {
+            id: 'drawNetworkLines',
+            beforeDatasetsDraw(chart, args, options) {
+                const { ctx, chartArea: { top, bottom, left, right, width, height }, scales: { x, y } } = chart;
+                
+                ctx.save();
+                ctx.beginPath();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 255)'; 
+
+                const meta = chart.getDatasetMeta(0);
+
+                interactions.forEach(link => {
+                    const pointA = meta.data[link.from]; 
+                    const pointB = meta.data[link.to];   
+
+                    if(pointA && pointB && !pointA.hidden && !pointB.hidden) {
+                        ctx.moveTo(pointA.x, pointA.y);
+                        ctx.lineTo(pointB.x, pointB.y);
+                    }
+                });
+
+                ctx.stroke();
+                ctx.restore();
+            }
+        };
+
+        const ctx = document.getElementById('myBubbleChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                    label: 'Entités',
+                    data: rawData,
+                    backgroundColor: bgColors,
+                    borderColor: 'rgba(255,255,255,0.2)', 
+                    borderWidth: 1
+                }]
+            },
+            plugins: [drawNetworkLines], 
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: 20 },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false },
+                    datalabels: {
+                        color: 'white',
+                        font: { weight: 'bold', size: 11 },
+                        formatter: (val) => val.originalScore,
+                        display: (ctx) => ctx.dataset.data[ctx.dataIndex].r > 15
+                    }
+                },
+                scales: {
+                    x: { display: false },
+                    y: { display: false }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
