@@ -1,0 +1,30 @@
+# Fichiers de log
+*.log
+
+# Fichiers temporaires
+*.tmp
+*.swp
+
+# CSV à ignorer
+*.csv
+*.csvv
+
+# Dossiers de build / compilation
+build/
+dist/
+out/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers IDE
+.vscode/
+.idea/
+*.iml
+
+# Node / Python / Flutter
+node_modules/
+__pycache__/
+*.pyc
+.flutter-plugins
