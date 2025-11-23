@@ -9,7 +9,7 @@
         body {
             font-family: 'Segoe UI', sans-serif;
             display: flex;
-            flex-direction: row; /* Disposition gauche/droite */
+            flex-direction: row;
             background-color: #0d0d0d;
             padding: 20px;
             color: #d4d4d4;
@@ -17,8 +17,6 @@
             margin: 0;
             overflow: hidden;
         }
-
-        /* --- CONTENEUR DU GRAPHIQUE (70%) --- */
         .chart-container {
             flex: 3;
             position: relative;
@@ -29,8 +27,6 @@
             margin-right: 20px;
             padding: 10px;
         }
-
-        /* --- CARTE DE VISITE (30%) --- */
         .info-panel {
             flex: 1;
             background: #1a1a1a;
@@ -42,15 +38,11 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             transition: all 0.3s ease;
         }
-
-        /* Style de la carte quand aucun user n'est sélectionné */
         .empty-state {
             text-align: center;
             color: #555;
             margin-top: 50%;
         }
-
-        /* Champs de la carte */
         .card-header {
             border-bottom: 1px solid #333;
             padding-bottom: 15px;
@@ -70,7 +62,6 @@
             border-radius: 4px;
             margin-left: 10px;
         }
-
         .data-row {
             display: flex;
             justify-content: space-between;
@@ -79,8 +70,6 @@
         }
         .data-label { color: #888; }
         .data-value { color: #fff; font-family: 'Consolas', monospace; text-align: right; }
-
-        /* Légende en bas du panel */
         .legend-box {
             margin-top: auto;
             padding-top: 20px;
@@ -93,28 +82,23 @@
             margin: 10px 0;
         }
         .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #666; }
-
     </style>
 </head>
 <body>
-
     <div class="chart-container">
         <canvas id="riskChart"></canvas>
     </div>
-
     <div class="info-panel" id="infoPanel">
         <div class="empty-state" id="emptyState">
             <h3>Sélectionnez un nœud</h3>
             <p>Cliquez sur une bulle pour voir les détails du client.</p>
         </div>
-
         <div id="cardContent" style="display: none;">
             <div class="card-header">
                 <span id="displayScore" class="card-score">0%</span>
                 <span id="displayRole" class="card-role">ROLE</span>
                 <h3 id="displayId" style="margin: 5px 0 0 0; color: #aaa;">ID: ---</h3>
             </div>
-
             <div class="data-row">
                 <span class="data-label">IBAN</span>
                 <span class="data-value" id="displayIban">---</span>
@@ -140,35 +124,25 @@
                 <span class="data-value" id="displayResp">Aucun</span>
             </div>
         </div>
-
         <div class="legend-box">
             <span style="font-size:12px; font-weight:bold;">Échelle de Risque</span>
             <div class="gradient-bar"></div>
             <div class="legend-labels"><span>Faible (0)</span><span>Élevé (100)</span></div>
         </div>
     </div>
-
     <script>
         Chart.register(ChartDataLabels);
 
-        // --- 1. SIMULATION DES DONNÉES PYTHON (À remplacer par ton JSON final) ---
-        // C'est ici que tu injecteras ta liste "total_customers" convertie en JSON
-        
         const pythonData = [];
         const roles = ['Business', 'Member', 'Viewing Party'];
         const numNodes = 40;
-
-        // Génération de fausses données pour l'exemple
         for(let i=0; i<numNodes; i++) {
             const score = Math.floor(Math.random() * 100);
-            
-            // Simulation de liens aléatoires
-            const responsableId = Math.random() > 0.8 ? (i > 0 ? i-1 : null) : null; // 20% ont un chef
+            const responsableId = Math.random() > 0.8 ? (i > 0 ? i-1 : null) : null;
             const foreignLinks = [];
-            if(Math.random() > 0.8) foreignLinks.push(Math.floor(Math.random()*numNodes)); // 20% ont des liens étrangers
-
+            if(Math.random() > 0.8) foreignLinks.push(Math.floor(Math.random()*numNodes));
             pythonData.push({
-                id: i, // L'ID unique (partner_id)
+                id: i,
                 role: roles[Math.floor(Math.random() * roles.length)],
                 score: score,
                 iban: `CH${Math.floor(Math.random()*1000000000)}`,
@@ -176,29 +150,21 @@
                 nb_of_transactions: Math.floor(Math.random() * 500),
                 br_id: `BR-${Math.floor(Math.random()*999)}`,
                 account_id: `ACC-${Math.floor(Math.random()*999)}`,
-                responsable: responsableId, // L'ID du responsable
-                from_other_country: foreignLinks // Liste d'IDs
+                responsable: responsableId,
+                from_other_country: foreignLinks
             });
         }
 
-        // --- 2. PRÉPARATION DES DONNÉES POUR CHART.JS ---
-        
-        // On crée une map pour retrouver rapidement l'index d'un node via son ID
-        // (Essentiel pour tracer les lignes)
         const idToIndexMap = {};
-        pythonData.forEach((item, index) => {
-            idToIndexMap[item.id] = index;
-        });
+        pythonData.forEach((item, index) => { idToIndexMap[item.id] = index; });
 
         const chartData = pythonData.map(c => ({
             x: Math.random() * 100,
             y: Math.random() * 100,
-            r: 8 + (c.score / 3), // Taille selon le score
-            // On stocke tout l'objet customer dans le point pour l'utiliser au clic
+            r: 8 + (c.score / 3),
             customerInfo: c 
         }));
 
-        // --- 3. COULEURS ---
         const COLOR_START = { r:255, g:240, b:245}; 
         const COLOR_END   = { r:153, g:0, b:0 }; 
 
@@ -212,67 +178,44 @@
 
         const bgColors = pythonData.map(d => getColorForScore(d.score));
 
-        // --- 4. PLUGIN POUR LES LIENS (ARROWS) ---
         const drawRelations = {
             id: 'drawRelations',
             beforeDatasetsDraw(chart) {
                 const { ctx } = chart;
                 const meta = chart.getDatasetMeta(0);
-
                 pythonData.forEach((customer, index) => {
                     const childNode = meta.data[index];
                     if(!childNode || childNode.hidden) return;
-
-                    // A. Dessiner lien vers RESPONSABLE (Ligne Solide)
                     if (customer.responsable !== null && idToIndexMap[customer.responsable] !== undefined) {
                         const parentIndex = idToIndexMap[customer.responsable];
                         const parentNode = meta.data[parentIndex];
                         drawArrow(ctx, parentNode, childNode, 'rgba(255, 255, 255, 0.6)');
                     }
-
-                    // B. Dessiner liens vers FROM_OTHER_COUNTRY (Ligne Pointillée rouge/orange)
-                    if (customer.from_other_country && customer.from_other_country.length > 0) {
-                        customer.from_other_country.forEach(linkId => {
-                            if(idToIndexMap[linkId] !== undefined) {
-                                const linkedIndex = idToIndexMap[linkId];
-                                const linkedNode = meta.data[linkedIndex];
-                                // On trace dans l'autre sens ou couleur différente
-                                drawArrow(ctx, linkedNode, childNode, 'rgba(255, 165, 0, 0.6)', true); 
-                            }
-                        });
-                    }
+                    
                 });
             }
         };
 
-        // Fonction utilitaire de dessin de flèche
         function drawArrow(ctx, fromNode, toNode, color, dashed = false) {
             if(!fromNode || !toNode) return;
-
             const dx = toNode.x - fromNode.x;
             const dy = toNode.y - fromNode.y;
             const angle = Math.atan2(dy, dx);
             const distance = Math.sqrt(dx*dx + dy*dy);
-            const padding = toNode.options.radius + 3; // Arrêter avant la bulle
-
+            const padding = toNode.options.radius + 3;
             if(distance < padding + fromNode.options.radius) return;
-
             const endX = toNode.x - padding * Math.cos(angle);
             const endY = toNode.y - padding * Math.sin(angle);
-
             ctx.save();
             ctx.beginPath();
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
             ctx.lineWidth = 1.5;
-            if(dashed) ctx.setLineDash([5, 5]); // Pointillés pour les interactions pays
-
+            if(dashed) ctx.setLineDash([5, 5]);
             ctx.moveTo(fromNode.x, fromNode.y);
             ctx.lineTo(endX, endY);
             ctx.stroke();
-
-            // Pointe flèche
-            ctx.setLineDash([]); // Reset dash pour la pointe
+            ctx.setLineDash([]);
             ctx.beginPath();
             const headLen = 8;
             ctx.moveTo(endX, endY);
@@ -282,9 +225,7 @@
             ctx.restore();
         }
 
-        // --- 5. INITIALISATION DU CHART ---
         const ctx = document.getElementById('riskChart').getContext('2d');
-        
         const riskChart = new Chart(ctx, {
             type: 'bubble',
             data: {
@@ -303,49 +244,35 @@
                 layout: { padding: 40 },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { enabled: false }, // On désactive le tooltip natif au profit du clic
+                    tooltip: { enabled: false },
                     datalabels: {
                         color: 'white',
                         font: { weight: 'bold', size: 10 },
-                        formatter: (val) => val.customerInfo.score, // Affiche le score
-                        display: (ctx) => ctx.dataset.data[ctx.dataIndex].r > 12 // Cache si trop petit
+                        formatter: (val) => val.customerInfo.score,
+                        display: (ctx) => ctx.dataset.data[ctx.dataIndex].r > 12
                     }
                 },
-                scales: {
-                    x: { display: false, min: -10, max: 110 }, // Marges pour pas couper
-                    y: { display: false, min: -10, max: 110 }
-                },
-                // --- INTERACTION CLIC ---
+                scales: { x: { display: false, min: -10, max: 110 }, y: { display: false, min: -10, max: 110 } },
                 onClick: (e) => {
                     const points = riskChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                    
                     if (points.length) {
                         const firstPoint = points[0];
                         const dataIndex = firstPoint.index;
                         const customer = chartData[dataIndex].customerInfo;
-                        
                         updateCard(customer);
                     }
                 },
-                onHover: (event, chartElement) => {
-                    event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
-                }
+                onHover: (event, chartElement) => { event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default'; }
             }
         });
 
-        // --- 6. LOGIQUE DE LA CARTE DE VISITE ---
         function updateCard(c) {
-            // Cacher l'état vide, montrer le contenu
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('cardContent').style.display = 'block';
-
-            // Remplissage des données
             document.getElementById('displayId').innerText = `ID: ${c.id}`;
             document.getElementById('displayScore').innerText = `${c.score}%`;
             document.getElementById('displayScore').style.color = getColorForScore(c.score);
-            
             document.getElementById('displayRole').innerText = c.role || 'N/A';
-            
             document.getElementById('displayIban').innerText = c.iban || 'N/A';
             document.getElementById('displaySolde').innerText = c.solde || '0';
             document.getElementById('displayTrans').innerText = c.nb_of_transactions;
@@ -353,7 +280,6 @@
             document.getElementById('displayBrId').innerText = c.br_id || 'N/A';
             document.getElementById('displayResp').innerText = c.responsable !== null ? c.responsable : 'Aucun';
         }
-
     </script>
 </body>
 </html>
