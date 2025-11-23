@@ -96,10 +96,6 @@ for customer in total_customers :
             if pd.notna(account_id): 
                 customer.from_other_country.append(account_id)
 
-for customer in customers_relationship:
-    print(customer.from_other_country)
-
-    
 # risk computation
 max_score = 0
 for customer in total_customers:
@@ -153,4 +149,4 @@ for customer in total_customers:
         score *= 1.05
 
     # Normalisation logarithmique pour éviter score quasi nul
-    customer.score = np.log1p(score) / np.log1p(max_score) * 100
+    customer.score = round(np.log1p(score) / np.log1p(max_score) * 100, 2)
