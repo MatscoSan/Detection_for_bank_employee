@@ -1,0 +1,22 @@
+{
+  "name": "chartjs-example",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "parcel build src/index.html"
+  },
+  "devDependencies": {
+    "parcel": "^2.6.2",
+    "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "@cubejs-client/core": "^0.31.0",
+    "chart.js": "^4.5.1"
+  },
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": ""
+  
+}
