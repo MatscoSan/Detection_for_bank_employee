@@ -1,198 +1,183 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Analyse des Risques & Relations</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: row;
-            background-color: #0d0d0d;
-            padding: 20px;
-            color: #d4d4d4;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-        .chart-container { flex: 3; position: relative; background: #161616; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-right: 20px; padding: 10px; }
-        .info-panel { flex: 1; background: #1a1a1a; border-radius: 12px; border: 1px solid #333; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.5); transition: all 0.3s ease; }
-        .empty-state { text-align: center; color: #555; margin-top: 50%; }
-        .card-header { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
-        .card-score { font-size: 32px; font-weight: bold; color: #fff; }
-        .card-role { text-transform: uppercase; font-size: 12px; letter-spacing: 1px; background: #333; padding: 4px 8px; border-radius: 4px; margin-left: 10px; }
-        .data-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
-        .data-label { color: #888; }
-        .data-value { color: #fff; font-family: 'Consolas', monospace; text-align: right; }
-        .legend-box { margin-top: auto; padding-top: 20px; border-top: 1px solid #333; }
-        .gradient-bar { height: 10px; border-radius: 5px; background: linear-gradient(to right, rgb(255, 240, 245), rgb(153, 0, 0)); margin: 10px 0; }
-        .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #666; }
-    </style>
+<meta charset="UTF-8">
+<title>Analyse des Risques & Relations</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<style>
+body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: row; background-color: #0d0d0d; padding: 20px; color: #d4d4d4; height: 100vh; margin: 0; overflow: hidden; }
+.chart-container { flex: 3; position: relative; background: #161616; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-right: 20px; padding: 10px; }
+.info-panel { flex: 1; background: #1a1a1a; border-radius: 12px; border: 1px solid #333; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.5); transition: all 0.3s ease; }
+.empty-state { text-align: center; color: #555; margin-top: 50%; }
+.card-header { border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
+.card-score { font-size: 32px; font-weight: bold; color: #fff; }
+.data-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+.data-label { color: #888; }
+.data-value { color: #fff; font-family: 'Consolas', monospace; text-align: right; }
+.legend-box { margin-top: auto; padding-top: 20px; border-top: 1px solid #333; }
+.gradient-bar { height: 10px; border-radius: 5px; background: linear-gradient(to right, rgb(255, 240, 245), rgb(153, 0, 0)); margin: 10px 0; }
+.legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: #666; }
+</style>
 </head>
 <body>
-    <div class="chart-container">
-        <canvas id="riskChart"></canvas>
+<div class="chart-container">
+    <canvas id="riskChart"></canvas>
+</div>
+<div class="info-panel" id="infoPanel">
+    <div class="empty-state" id="emptyState">
+        <h3>Sélectionnez un nœud</h3>
+        <p>Cliquez sur une bulle pour voir les détails du client.</p>
     </div>
-    <div class="info-panel" id="infoPanel">
-        <div class="empty-state" id="emptyState">
-            <h3>Sélectionnez un nœud</h3>
-            <p>Cliquez sur une bulle pour voir les détails du client.</p>
+    <div id="cardContent" style="display: none;">
+        <div class="card-header">
+            <span id="displayScore" class="card-score">0%</span>
+            <h3 id="displayId" style="margin: 5px 0 0 0; color: #aaa;">ID: ---</h3>
         </div>
-        <div id="cardContent" style="display: none;">
-            <div class="card-header">
-                <span id="displayScore" class="card-score">0%</span>
-                <span id="displayRole" class="card-role">ROLE</span>
-                <h3 id="displayId" style="margin: 5px 0 0 0; color: #aaa;">ID: ---</h3>
-            </div>
-            <div class="data-row"><span class="data-label">IBAN</span><span class="data-value" id="displayIban">---</span></div>
-            <div class="data-row"><span class="data-label">Solde Compte</span><span class="data-value" id="displaySolde">---</span></div>
-            <div class="data-row"><span class="data-label">Transactions</span><span class="data-value" id="displayTrans">0</span></div>
-            <div class="data-row"><span class="data-label">Account ID</span><span class="data-value" id="displayAccId">---</span></div>
-            <div class="data-row"><span class="data-label">BR ID</span><span class="data-value" id="displayBrId">---</span></div>
-            <div class="data-row"><span class="data-label">Responsable ID</span><span class="data-value" id="displayResp">Aucun</span></div>
-        </div>
-        <div class="legend-box">
-            <span style="font-size:12px; font-weight:bold;">Échelle de Risque</span>
-            <div class="gradient-bar"></div>
-            <div class="legend-labels"><span>Faible (0)</span><span>Élevé (100)</span></div>
-        </div>
+        <div class="data-row"><span class="data-label">IBAN</span><span class="data-value" id="displayIban">---</span></div>
+        <div class="data-row"><span class="data-label">Solde Compte</span><span class="data-value" id="displaySolde">---</span></div>
+        <div class="data-row"><span class="data-label">Transactions</span><span class="data-value" id="displayTrans">0</span></div>
+        <div class="data-row"><span class="data-label">Account ID</span><span class="data-value" id="displayAccId">---</span></div>
+        <div class="data-row"><span class="data-label">BR ID</span><span class="data-value" id="displayBrId">---</span></div>
+        <div class="data-row"><span class="data-label">Liens</span><span class="data-value" id="displayResp">Aucun</span></div>
     </div>
-    <script>
-        const total_customers = [
-            {"id":"06c41ef1-2f8f-4ae5-9203-91d96ea8b97f","role":"Viewing Party","score":45,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":[]},
-            {"id":"d25181ee-e77a-498e-8e10-69d0e38ef45c","role":"Viewing Party","score":30,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":[]},
-            {"id":"70e297f9-5729-4d72-b25e-d8e93b50e7d5","role":"Viewing Party","score":50,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":[]},
-            {"id":"09bbbe2b-bfbc-4573-947a-f3f47814e19f","role":"Viewing Party","score":20,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":[]},
-            {"id":"d640037a-0eac-4f31-be45-06c67452060f","role":"Viewing Party","score":35,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":[]},
-            {"id":"50227ec6-df35-4c31-9cb7-a46a4bba6f52","role":"Viewing Party","score":40,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":[]},
-            {"id":"94228541-a606-47ba-a865-816d71d16f39","role":"Viewing Party","score":60,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":["b8f9a2ad-165a-46be-9554-1ce4aeed3999"]},
-            {"id":"4241bf49-1f9b-4484-a23b-a4d2a920f707","role":"Viewing Party","score":25,"iban":"---","solde":0,"nb_of_transactions":0,"br_id":"---","account_id":"---","responsable":null,"from_other_country":[]}
-        ];
-    </script>
-    <script>
-        Chart.register(ChartDataLabels);
-        const pythonData = [];
-        for (let i = 0; i < total_customers.length; i++) {
-            const customer = total_customers[i];
-            pythonData.push({
-                id: customer.id,
-                role: customer.role,
-                score: customer.score,
-                iban: customer.iban,
-                solde: customer.solde + " CHF",
-                nb_of_transactions: customer.nb_of_transactions,
-                br_id: customer.br_id,
-                account_id: customer.account_id,
-                responsable: customer.responsable,
-                from_other_country: customer.from_other_country
+    <div class="legend-box">
+        <span style="font-size:12px; font-weight:bold;">Échelle de Risque</span>
+        <div class="gradient-bar"></div>
+        <div class="legend-labels"><span>Faible (0)</span><span>Élevé (100)</span></div>
+    </div>
+</div>
+
+<script>
+Chart.register(ChartDataLabels);
+
+const pythonData = [];
+const numNodes = 40;
+for(let i=0; i<numNodes; i++) {
+    const score = Math.floor(Math.random() * 100);
+    pythonData.push({
+        id: i,
+        score: score,
+        iban: `CH${Math.floor(Math.random()*1000000000)}`,
+        solde: (Math.random() * 100000).toFixed(2) + " CHF",
+        nb_of_transactions: Math.floor(Math.random() * 500),
+        br_id: `BR-${Math.floor(Math.random()*999)}`,
+        account_id: `ACC-${Math.floor(Math.random()*999)}`,
+        links: []
+    });
+}
+
+pythonData.forEach((node, i) => {
+    const numLinks = Math.floor(Math.random() * 3);
+    for(let j=0;j<numLinks;j++){
+        let target = Math.floor(Math.random() * numNodes);
+        if(target!==i && !node.links.includes(target)) node.links.push(target);
+    }
+});
+
+const chartData = pythonData.map(c => ({
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    r: 8 + (c.score / 3),
+    customerInfo: c 
+}));
+
+const COLOR_START = { r:255, g:240, b:245 }; 
+const COLOR_END   = { r:153, g:0, b:0 }; 
+
+function getColorForScore(score) {
+    const ratio = score / 100;
+    const r = Math.round(COLOR_START.r - ratio * (COLOR_START.r - COLOR_END.r));
+    const g = Math.round(COLOR_START.g - ratio * (COLOR_START.g - COLOR_END.g));
+    const b = Math.round(COLOR_START.b - ratio * (COLOR_START.b - COLOR_END.b));
+    return `rgba(${r}, ${g}, ${b}, 0.9)`;
+}
+
+const bgColors = pythonData.map(d => getColorForScore(d.score));
+
+const drawRelations = {
+    id: 'drawRelations',
+    beforeDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        pythonData.forEach((customer, index) => {
+            const childNode = meta.data[index];
+            if(!childNode || childNode.hidden) return;
+            customer.links.forEach(linkId => {
+                const targetNode = meta.data[linkId];
+                if(targetNode) drawArrow(ctx, childNode, targetNode, 'rgba(255,255,255,0.6)');
             });
-        }
-        const idToIndexMap = {};
-        pythonData.forEach((item, index) => { idToIndexMap[item.id] = index; });
-        const chartData = pythonData.map(c => ({
-            x: Math.random()*100,
-            y: Math.random()*100,
-            r: 8 + (c.score/3),
-            customerInfo: c
-        }));
-        const COLOR_START = {r:255,g:240,b:245}; 
-        const COLOR_END = {r:153,g:0,b:0};
-        function getColorForScore(score){
-            const ratio = score/100;
-            const r = Math.round(COLOR_START.r - ratio*(COLOR_START.r - COLOR_END.r));
-            const g = Math.round(COLOR_START.g - ratio*(COLOR_START.g - COLOR_END.g));
-            const b = Math.round(COLOR_START.b - ratio*(COLOR_START.b - COLOR_END.b));
-            return `rgba(${r},${g},${b},0.9)`;
-        }
-        const bgColors = pythonData.map(d => getColorForScore(d.score));
-        const drawRelations = {
-            id:'drawRelations',
-            beforeDatasetsDraw(chart){
-                const {ctx} = chart;
-                const meta = chart.getDatasetMeta(0);
-                pythonData.forEach((customer,index)=>{
-                    const childNode = meta.data[index];
-                    if(!childNode||childNode.hidden) return;
-                    if(customer.responsable!==null && idToIndexMap[customer.responsable]!==undefined){
-                        const parentNode = meta.data[idToIndexMap[customer.responsable]];
-                        drawArrow(ctx,parentNode,childNode,'rgba(255,255,255,0.6)');
-                    }
-                });
-            }
-        };
-        function drawArrow(ctx,fromNode,toNode,color,dashed=false){
-            if(!fromNode||!toNode) return;
-            const dx=toNode.x-fromNode.x;
-            const dy=toNode.y-fromNode.y;
-            const angle=Math.atan2(dy,dx);
-            const distance=Math.sqrt(dx*dx+dy*dy);
-            const padding=toNode.options.radius+3;
-            if(distance<padding+fromNode.options.radius) return;
-            const endX=toNode.x-padding*Math.cos(angle);
-            const endY=toNode.y-padding*Math.sin(angle);
-            ctx.save();
-            ctx.beginPath();
-            ctx.strokeStyle=color;
-            ctx.fillStyle=color;
-            ctx.lineWidth=1.5;
-            if(dashed) ctx.setLineDash([5,5]); else ctx.setLineDash([]);
-            ctx.moveTo(fromNode.x,fromNode.y);
-            ctx.lineTo(endX,endY);
-            ctx.stroke();
-            ctx.beginPath();
-            const headLen=8;
-            ctx.moveTo(endX,endY);
-            ctx.lineTo(endX-headLen*Math.cos(angle-Math.PI/6),endY-headLen*Math.sin(angle-Math.PI/6));
-            ctx.lineTo(endX-headLen*Math.cos(angle+Math.PI/6),endY-headLen*Math.sin(angle+Math.PI/6));
-            ctx.fill();
-            ctx.restore();
-        }
-        const ctx=document.getElementById('riskChart').getContext('2d');
-        const riskChart=new Chart(ctx,{
-            type:'bubble',
-            data:{datasets:[{label:'Clients',data:chartData,backgroundColor:bgColors,borderColor:'rgba(255,255,255,0.3)',borderWidth:1}]},
-            plugins:[drawRelations],
-            options:{
-                responsive:true,
-                maintainAspectRatio:false,
-                layout:{padding:40},
-                plugins:{
-                    legend:{display:false},
-                    tooltip:{enabled:false},
-                    datalabels:{
-                        color:'white',
-                        font:{weight:'bold',size:10},
-                        formatter:(val)=>val.customerInfo.score,
-                        display:(ctx)=>ctx.dataset.data[ctx.dataIndex].r>12
-                    }
-                },
-                scales:{x:{display:false,min:-10,max:110},y:{display:false,min:-10,max:110}},
-                onClick:(e)=>{
-                    const points=riskChart.getElementsAtEventForMode(e,'nearest',{intersect:true},true);
-                    if(points.length){
-                        const customer=chartData[points[0].index].customerInfo;
-                        updateCard(customer);
-                    }
-                },
-                onHover:(e,chartElement)=>{e.native.target.style.cursor=chartElement.length?'pointer':'default';}
-            }
         });
-        function updateCard(c){
-            document.getElementById('emptyState').style.display='none';
-            document.getElementById('cardContent').style.display='block';
-            document.getElementById('displayId').innerText=`ID: ${c.id}`;
-            document.getElementById('displayScore').innerText=`${c.score}%`;
-            document.getElementById('displayScore').style.color=getColorForScore(c.score);
-            document.getElementById('displayRole').innerText=c.role||'N/A';
-            document.getElementById('displayIban').innerText=c.iban||'N/A';
-            document.getElementById('displaySolde').innerText=c.solde||'0';
-            document.getElementById('displayTrans').innerText=c.nb_of_transactions;
-            document.getElementById('displayAccId').innerText=c.account_id||'N/A';
-            document.getElementById('displayBrId').innerText=c.br_id||'N/A';
-            document.getElementById('displayResp').innerText=c.responsable!==null?c.responsable:'Aucun';
-        }
-    </script>
+    }
+};
+
+function drawArrow(ctx, fromNode, toNode, color){
+    const dx = toNode.x - fromNode.x;
+    const dy = toNode.y - fromNode.y;
+    const angle = Math.atan2(dy, dx);
+    const distance = Math.sqrt(dx*dx + dy*dy);
+    const padding = toNode.options.radius + 3;
+    if(distance < padding + fromNode.options.radius) return;
+    const endX = toNode.x - padding * Math.cos(angle);
+    const endY = toNode.y - padding * Math.sin(angle);
+    ctx.save();
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.moveTo(fromNode.x, fromNode.y);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    ctx.beginPath();
+    const headLen = 8;
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.fill();
+    ctx.restore();
+}
+
+const ctx = document.getElementById('riskChart').getContext('2d');
+const riskChart = new Chart(ctx, {
+    type: 'bubble',
+    data: { datasets: [{ label: 'Clients', data: chartData, backgroundColor: bgColors, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1 }] },
+    plugins: [drawRelations],
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: 40 },
+        plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false },
+            datalabels: {
+                color: 'white',
+                font: { weight: 'bold', size: 10 },
+                formatter: (val) => val.customerInfo.score,
+                display: (ctx) => ctx.dataset.data[ctx.dataIndex].r > 12
+            }
+        },
+        scales: { x: { display: false, min: -10, max: 110 }, y: { display: false, min: -10, max: 110 } },
+        onClick: (e) => {
+            const points = riskChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+            if (points.length) updateCard(chartData[points[0].index].customerInfo);
+        },
+        onHover: (event, chartElement) => { event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default'; }
+    }
+});
+
+function updateCard(c) {
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('cardContent').style.display = 'block';
+    document.getElementById('displayId').innerText = `ID: ${c.id}`;
+    document.getElementById('displayScore').innerText = `${c.score}%`;
+    document.getElementById('displayScore').style.color = getColorForScore(c.score);
+    document.getElementById('displayIban').innerText = c.iban || 'N/A';
+    document.getElementById('displaySolde').innerText = c.solde || '0';
+    document.getElementById('displayTrans').innerText = c.nb_of_transactions;
+    document.getElementById('displayAccId').innerText = c.account_id || 'N/A';
+    document.getElementById('displayBrId').innerText = c.br_id || 'N/A';
+    document.getElementById('displayResp').innerText = c.links.length ? c.links.join(',') : 'Aucun';
+}
+</script>
 </body>
 </html>
