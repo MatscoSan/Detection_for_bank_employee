@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Graphic analyse risk</title>
+    <title>Graph analyze risk</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
@@ -27,7 +27,7 @@
 
         .chart-box {
             position: relative;
-            height: 60vh; 
+            height: 60vh;
             border: 1px solid #333;
             border-radius: 8px;
             background: #000;
@@ -48,7 +48,7 @@
 <body>
 
     <div class="container">
-        <h2 style="text-align: center;">Transaction analyse</h2>
+        <h2 style="text-align: center;">Analyze of the risk</h2>
         
         <div class="chart-box">
             <canvas id="myBubbleChart"></canvas>
@@ -61,13 +61,14 @@
                 <div class="gradient-bar"></div>
                 <span class="legend-label">100</span>
             </div>
-            <p style="font-size: 11px; color: #666; margin-top: 10px;">The lines represent the transaction between 2 customers</p>
+            <p style="font-size: 11px; color: #666; margin-top: 10px;">The arrows represent the transaction between people</p>
         </div>
     </div>
 
     <script>
         Chart.register(ChartDataLabels);
 
+        // --- 1. COULEURS ---
         const COLOR_START = { r:255, g:240, b:245}; 
         const COLOR_END   = { r:153, g:0, b:0 };   
 
@@ -80,52 +81,89 @@
         }
 
         const rawData = [];
-        const pointCount = 30; 
+        const pointCount = 25; 
 
         for(let i=0; i<pointCount; i++) {
             const score = Math.floor(Math.random() * 101); 
             rawData.push({
                 x: Math.random() * 100,
                 y: Math.random() * 100,
-                r: 10 + (score / 3.5), 
+                r: 12 + (score / 3), // Rayon un peu plus grand
                 originalScore: score 
             });
         }
 
+        // --- 3. DÉFINITION DES PARENTS/ENFANTS ---
         const interactions = [];
-        for(let i=0; i<15; i++) {
+        for(let i=0; i<12; i++) {
             const indexA = Math.floor(Math.random() * pointCount);
             const indexB = Math.floor(Math.random() * pointCount);
             if(indexA !== indexB) {
+                // from = Parent, to = Enfant
                 interactions.push({ from: indexA, to: indexB });
             }
         }
 
         const bgColors = rawData.map(d => getColorForScore(d.originalScore));
 
-        const drawNetworkLines = {
-            id: 'drawNetworkLines',
-            beforeDatasetsDraw(chart, args, options) {
-                const { ctx, chartArea: { top, bottom, left, right, width, height }, scales: { x, y } } = chart;
-                
-                ctx.save();
-                ctx.beginPath();
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = 'rgba(255, 255, 255, 255)'; 
-
+        const drawNetworkArrows = {
+            id: 'drawNetworkArrows',
+              beforeDatasetsDraw(chart, args, options) {
+                const { ctx } = chart;
                 const meta = chart.getDatasetMeta(0);
 
-                interactions.forEach(link => {
-                    const pointA = meta.data[link.from]; 
-                    const pointB = meta.data[link.to];   
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 255)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 255)';   
+                ctx.lineWidth = 1.5;
 
-                    if(pointA && pointB && !pointA.hidden && !pointB.hidden) {
-                        ctx.moveTo(pointA.x, pointA.y);
-                        ctx.lineTo(pointB.x, pointB.y);
+                interactions.forEach(link => {
+                    const parent = meta.data[link.from];
+                    const child = meta.data[link.to];
+
+                    if(parent && child && !parent.hidden && !child.hidden) {
+                        
+                        // Calculs géométriques
+                        const dx = child.x - parent.x;
+                        const dy = child.y - parent.y;
+                        const angle = Math.atan2(dy, dx); // Angle de la ligne
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+
+                        // Rayon de la bulle enfant (pour s'arrêter au bord)
+                        // On ajoute un petit 'padding' (ex: 2px) pour ne pas coller
+                        const childRadius = child.options.radius + 2;
+
+                        if(distance > childRadius + parent.options.radius) {
+                            
+                            const startX = parent.x; 
+                            const startY = parent.y;
+
+                            const endX = child.x - childRadius * Math.cos(angle);
+                            const endY = child.y - childRadius * Math.sin(angle);
+
+                            ctx.beginPath();
+                            ctx.moveTo(startX, startY);
+                            ctx.lineTo(endX, endY);
+                            ctx.stroke();
+
+                            const headLength = 10;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(endX, endY);
+                            ctx.lineTo(
+                                endX - headLength * Math.cos(angle - Math.PI / 6),
+                                endY - headLength * Math.sin(angle - Math.PI / 6)
+                            );
+                            ctx.lineTo(
+                                endX - headLength * Math.cos(angle + Math.PI / 6),
+                                endY - headLength * Math.sin(angle + Math.PI / 6)
+                            );
+                            ctx.closePath();
+                            ctx.fill(); 
+                        }
                     }
                 });
 
-                ctx.stroke();
                 ctx.restore();
             }
         };
@@ -143,11 +181,11 @@
                     borderWidth: 1
                 }]
             },
-            plugins: [drawNetworkLines], 
+            plugins: [drawNetworkArrows], 
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: 20 },
+                layout: { padding: 30 }, 
                 plugins: {
                     legend: { display: false },
                     tooltip: { enabled: false },
