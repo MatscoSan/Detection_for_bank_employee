@@ -60,39 +60,38 @@
         </div>
     </div>
     <script>
-    const total_customers = [
-   {"id":"p1","name":"Amela Wettstein","iban":"CH9300762011623852957","solde":"12 430.50","nb_of_transactions":45,"account_id":"A-1001","br_id":"BR-01","role":"Viewing Party","score":76,"transactions":[-120.5,2500, -45.2, 320.0, -980.0, 150.0, -60.0, 430.25]},
-  {"id":"p2","name":"Claus Brunner","iban":"CH5604835012345678901","solde":"3 200.00","nb_of_transactions":12,"account_id":"A-1002","br_id":"BR-02","role":"Viewing Party","score":51,"transactions":[-45.0,120.0,-15.5,300.0, -220.0, 50.0]},
-  {"id":"p3","name":"Diane Christen","iban":"CH7709001122334455660","solde":"8 950.10","nb_of_transactions":23,"account_id":"A-1003","br_id":"BR-03","role":"Viewing Party","score":63,"transactions":[500.0,-120.0,240.0,-60.0, -300.0, 1000.0, -20.5]},
-  {"id":"p4","name":"Henry Kuhn","iban":"CH6209000000000000001","solde":"4 500.75","nb_of_transactions":8,"account_id":"A-1004","br_id":"BR-01","role":"Viewing Party","score":46,"transactions":[-30.0,200.0,-15.0, -400.0, 100.0]},
-  {"id":"p5","name":"Albert Gloor","iban":"CH9300762011223344556","solde":"6 100.20","nb_of_transactions":15,"account_id":"A-1005","br_id":"BR-02","role":"Viewing Party","score":58,"transactions":[250.0,-75.5,120.0,-500.0, 300.0, -20.0]},
-  {"id":"p6","name":"Agathe Frey","iban":"CH1234567890123456789","solde":"2 300.00","nb_of_transactions":5,"account_id":"A-1006","br_id":"BR-03","role":"Viewing Party","score":41,"transactions":[-10.0,50.0,-5.0,100.0,-200.0]},
-  {"id":"p7","name":"Carole Schürch","iban":"CH4455667788990011223","solde":"9 120.40","nb_of_transactions":30,"account_id":"A-1007","br_id":"BR-02","role":"Viewing Party","score":66,"transactions":[1000.0,-250.0,300.0,-120.0, 50.0, -900.0, 250.0]},
-  {"id":"p8","name":"Dora Moser","iban":"CH9988776655443322110","solde":"1 200.00","nb_of_transactions":3,"account_id":"A-1008","br_id":"BR-01","role":"Viewing Party","score":37,"transactions":[-20.0, 50.0, -10.0]},
-  {"id":"p9","name":"Lana Schaub","iban":"CH1029384756102938475","solde":"5 600.00","nb_of_transactions":18,"account_id":"A-1009","br_id":"BR-03","role":"Viewing Party","score":60,"transactions":[200.0,-150.0, 75.0, -20.0, 400.0, -60.0]},
-  {"id":"p10","name":"Rosina Michel","iban":"CH5647382910001234567","solde":"7 800.60","nb_of_transactions":21,"account_id":"A-1010","br_id":"BR-02","role":"Viewing Party","score":62,"transactions":[-60.0, 800.0, -120.0, 50.0, -300.0, 240.0]},
-  {"id":"p11","name":"Zorica Gross","iban":"CH0102030405060708090","solde":"11 000.00","nb_of_transactions":40,"account_id":"A-1011","br_id":"BR-01","role":"Viewing Party","score":75,"transactions":[1000.0,-500.0,200.0,-100.0, 400.0, -50.0, 120.0]},
-  {"id":"p12","name":"Jeremy Stauffer","iban":"CH1112131415161718192","solde":"14 250.00","nb_of_transactions":55,"account_id":"A-1012","br_id":"BR-02","role":"Viewing Party","score":78,"transactions":[1500.0,-1200.0,800.0,-60.0, 600.0, -300.0, 200.0]},
-  {"id":"p13","name":"Louisa Zehnder","iban":"CH2122232425262728293","solde":"2 750.90","nb_of_transactions":9,"account_id":"A-1013","br_id":"BR-03","role":"Viewing Party","score":48,"transactions":[-25.0,100.0,-10.0, 50.0, -5.0]},
-  {"id":"p14","name":"Tiziana Ziegler","iban":"CH3132333435363738394","solde":"6 900.00","nb_of_transactions":27,"account_id":"A-1014","br_id":"BR-01","role":"Viewing Party","score":65,"transactions":[300.0,-80.0,120.0,-250.0, 400.0, -30.0, 90.0]},
-  {"id":"p15","name":"Meinrad Bühlmann","iban":"CH4142434445464748495","solde":"10 500.00","nb_of_transactions":33,"account_id":"A-1015","br_id":"BR-02","role":"Viewing Party","score":72,"transactions":[500.0,-200.0,300.0,-50.0, 100.0, -10.0, 250.0]}
- ];
 
     Chart.register(ChartDataLabels);
 
+    const total_customers = [
+    {id:"p1", account_id:"A-1001", score:76, from_other_country:["A-1002","A-1003"], iban:"CH9300762011623852957", solde:"12 430.50", nb_of_transactions:45, br_id:"BR-01"},
+    {id:"p2", account_id:"A-1002", score:51, from_other_country:["A-1005"], iban:"CH5604835012345678901", solde:"3 200.00", nb_of_transactions:12, br_id:"BR-02"},
+    {id:"p3", account_id:"A-1003", score:63, from_other_country:[], iban:"CH7709001122334455660", solde:"8 950.10", nb_of_transactions:23, br_id:"BR-03"},
+    {id:"p4", account_id:"A-1004", score:46, from_other_country:[], iban:"CH6209000000000000001", solde:"4 500.75", nb_of_transactions:8, br_id:"BR-01"},
+    {id:"p5", account_id:"A-1005", score:58, from_other_country:["A-1003"], iban:"CH9300762011223344556", solde:"6 100.20", nb_of_transactions:15, br_id:"BR-02"}
+    ];
+
     const pythonData = total_customers.map(c => ({
         id: c.id,
-        score: c.score, // Génération aléatoire de score
+        score: c.score,
         iban: c.iban,
         solde: c.solde,
         nb_of_transactions: c.nb_of_transactions,
         account_id: c.account_id,
         br_id: c.br_id,
-        links: [] // tu peux générer des liens aléatoires comme avant si tu veux
+        links: c.from_other_country ? [...c.from_other_country] : []
     }));
 
     const idToIndexMap = {};
     pythonData.forEach((item, index) => { idToIndexMap[item.id] = index; });
+
+    const accountIdToIdMap = {};
+    pythonData.forEach(c => { accountIdToIdMap[c.account_id] = c.id; });
+
+    // Convertit account_id en id pour les links
+    pythonData.forEach(c => {
+        c.links = c.links.map(accId => accountIdToIdMap[accId]).filter(id => id);
+    });
 
     const chartData = pythonData.map(c => ({
         x: Math.random()*100,
