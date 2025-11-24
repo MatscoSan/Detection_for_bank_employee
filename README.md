@@ -1,37 +1,46 @@
-# Detection for Bank Employee
+# Bank Employee Fraud Detection
 
-A fraud detection and risk analysis system for monitoring bank employee transactions and identifying suspicious patterns.
+A lightweight system analyzing bank employee transactions and
+identifying suspicious behavior.
 
-## 📋 Overview
+## What is This?
 
-This system analyzes employee banking transactions to calculate risk scores and detect potential fraudulent behavior. It provides visual representations of transaction networks and detailed employee profiles.
+This project provides a simple interface for viewing employee risk
+levels, transaction patterns, and network connections. It highlights
+unusual activity based on transaction volume, countries, and
+salary-adjusted metrics.
 
-## ✨ Features
+## Quick Start
 
-### 🎯 Risk Calculation
-The system calculates employee risk based on:
-- **High-value transactions** relative to employee salary
-- **International transfers** from unusual or high-risk countries
-- **Transaction pattern anomalies**
-- **Risk categorization** (low, medium, high) for filtering
+### Start the Server
 
-### 🕸️ Transaction Network Graph
-- **Interactive homepage** with network visualization
-- Each **node represents a person** (employee or transaction partner)
-- **Edges connect people** who have made transactions together
-- **Click on a node** to view detailed profile and transaction history
-- **Filter options**: risk level, transaction amounts, countries
+``` bash
+python3 -m http.server 8000
+```
 
-### 👤 Employee Profile Cards
-Visual "visit card" for each employee displaying:
-- 📸 **Photo** and name
-- 💰 **Salary** information
-- 📊 **Transaction flow** graph
-- 🔍 **External verification** (LinkedIn, public records)
-- ⚠️ **Risk indicators**
+Then open:
 
-### 🔎 Fraud Detection
-When high-risk employees are identified:
-- View **connected transaction partners** who may also be involved
-- Cross-reference with **external data sources**
-- Identify **suspicious transaction patterns**
+    http://localhost:8000
+
+## Features
+
+### Risk Analysis
+
+-   Detects transactions inconsistent with salary
+-   Flags international or unusual transfers
+-   Categorizes employees by risk level
+
+### Network Graph
+
+-   Visualizes connections between customers 
+-   Clickable nodes for quick navigation
+-   Filtration by countries 
+
+
+## Structure
+
+    /
+    ├── index.html
+    ├── employees/
+    ├── data/
+    └── assets/
